@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Twitter Test</string>
 
-    <string name="com.twitter.sdk.android.CONSUMER_KEY">xxx</string>
-    <string name="com.twitter.sdk.android.CONSUMER_SECRET">xxx</string>
+    <string name="com.twitter.sdk.android.CONSUMER_KEY">xxy</string>
+    <string name="com.twitter.sdk.android.CONSUMER_SECRET">xxy</string>
 
 </resources>
