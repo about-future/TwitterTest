@@ -9,6 +9,10 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField ("String", "TWITTER_KEY", Twitter_CONSUMER_KEY)
+        buildConfigField ("String", "TWITTER_SECRET", Twitter_CONSUMER_SECRET)
+        resValue ("string", "twitter_key", Twitter_CONSUMER_KEY)
+        resValue ("string", "twitter_secret", Twitter_CONSUMER_SECRET)
     }
     buildTypes {
         release {
