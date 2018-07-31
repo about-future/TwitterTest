@@ -4,4 +4,10 @@
     <string name="com.twitter.sdk.android.CONSUMER_KEY">@string/twitter_key</string>
     <string name="com.twitter.sdk.android.CONSUMER_SECRET">@string/twitter_secret</string>
 
+    <string name="label_send_notification">Send Notification</string>
+    <string name="label_last_tweets">Last Tweets</string>
+    <string name="label_webcast_link">Webcast Link</string>
+    <string name="label_send_link">Send Link</string>
+    <string name="label_edit_text_hint">Insert link</string>
+
 </resources>
