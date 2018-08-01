@@ -9,12 +9,7 @@ import android.util.Log;
 import com.aboutfuture.twittertest.retrofit.ApiClient;
 import com.aboutfuture.twittertest.retrofit.ApiInterface;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import java.io.IOException;
-import java.util.Objects;
-
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
