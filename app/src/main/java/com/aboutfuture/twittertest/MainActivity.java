@@ -9,6 +9,10 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -16,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.security.ProviderInstaller;
 import com.google.firebase.database.DatabaseReference;
@@ -31,35 +36,32 @@ import com.twitter.sdk.android.core.models.Tweet;
 import com.twitter.sdk.android.core.services.StatusesService;
 
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String> {
+public class MainActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<String>, TweetAdapter.ListItemClickListener {
 
     public static final int WEBPAGE_LOADER_ID = 236;
-    public static final String ANONYMOUS = "anonymous";
-
-    private String mUsername;
     private TextToSpeech tts;
     private int languageResult;
 
     private StatusesService statusesService;
 
-    private String mResultedText;
-    private TextView mResultTextView;
-    private Button mSendNotificationButton;
-    private ImageView mRefreshLastTweetImageView;
+    //private TextView mSelectedTextView;
+    private EditText mSelectedEditTextView;
+    private ImageView mClearImageView;
+    private ImageView mSpeakImageView;
+    private RecyclerView mTweetsRecyclerView;
+    private TweetAdapter mTweetAdapter;
 
-    //private TextView mWebcastLinkTextView;
-    private Button mSendWebcastLinkButton;
     private ImageView mWebcastPreviewImageview;
-    private ImageView mRefreshWecastImageView;
     private EditText mWebcastLinkEditText;
 
     private ProgressBar mTweetProgress;
     private ProgressBar mWebcastProgress;
 
-    private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mMessegesDatabaseReference;
 
     @Override
@@ -67,28 +69,66 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mResultTextView = findViewById(R.id.tweet_tv);
-        mSendNotificationButton = findViewById(R.id.notification_button);
-        //mWebcastLinkTextView = findViewById(R.id.webcast_link_tv);
-        mSendWebcastLinkButton = findViewById(R.id.webcast_button);
+        mTweetsRecyclerView = findViewById(R.id.tweets_rv);
+        mSelectedEditTextView = findViewById(R.id.selected_tweet_tv);
         mWebcastPreviewImageview = findViewById(R.id.webcast_preview);
         mWebcastLinkEditText = findViewById(R.id.webcast_edit_link);
-
-        mRefreshLastTweetImageView = findViewById(R.id.refresh_last_tweet);
-        mRefreshWecastImageView = findViewById(R.id.refresh_webcast_link);
-
         mTweetProgress = findViewById(R.id.tweet_progress);
         mWebcastProgress = findViewById(R.id.webcast_progress);
+        mSpeakImageView = findViewById(R.id.speak_iv);
+        mClearImageView = findViewById(R.id.clear_iv);
 
-        mUsername = ANONYMOUS;
+        mClearImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSelectedEditTextView.setText("");
+                mSpeakImageView.setVisibility(View.INVISIBLE);
+                mClearImageView.setVisibility(View.INVISIBLE);
+            }
+        });
 
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mSpeakImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Text to speech
+                tts = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int status) {
+                        if (status == TextToSpeech.SUCCESS) {
+                            languageResult = tts.setLanguage(Locale.US);
+                            if (languageResult == TextToSpeech.LANG_MISSING_DATA ||
+                                    languageResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                Toast.makeText(getApplicationContext(), "This language is not supported.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                if (!TextUtils.isEmpty(mSelectedEditTextView.getText().toString())) {
+                                    speak(mSelectedEditTextView.getText().toString());
+                                }
+                            }
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Feature not supported on your device.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+
+        FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
         mMessegesDatabaseReference = mFirebaseDatabase.getReference().child("messages");
 
-        // Some devices have
+        // Some devices have SSL protocol activated by default, this method will activate
+        // the newer network protocols that are also installed on the device, but not active.
         if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 22) {
             upgradeSecurityProvider();
         }
+
+        mTweetsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(
+                mTweetsRecyclerView.getContext(),
+                DividerItemDecoration.VERTICAL);
+        mTweetsRecyclerView.addItemDecoration(mDividerItemDecoration);
+        mTweetsRecyclerView.setHasFixedSize(false);
+        mTweetAdapter = new TweetAdapter(this, this);
+        mTweetsRecyclerView.setAdapter(mTweetAdapter);
 
         // BuildConfig.TWITTER_KEY
         Twitter.initialize(this);
@@ -99,7 +139,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         loadTweet();
 
-        mRefreshLastTweetImageView.setOnClickListener(new View.OnClickListener() {
+        // Refresh tweets
+        ImageView refreshLastTweetImageView = findViewById(R.id.refresh_last_tweet);
+        refreshLastTweetImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 loadTweet();
@@ -107,17 +149,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         // Send a message with the new status of the launch
-        mSendNotificationButton.setOnClickListener(new View.OnClickListener() {
+        Button sendNotificationButton = findViewById(R.id.notification_button);
+        sendNotificationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 FriendlyMessage friendlyMessage = new FriendlyMessage(
-                        "news", mResultTextView.getText().toString());
+                        "news", mSelectedEditTextView.getText().toString());
                 mMessegesDatabaseReference.push().setValue(friendlyMessage);
             }
         });
 
         // Send an update link for the upcoming mission
-        mSendWebcastLinkButton.setOnClickListener(new View.OnClickListener() {
+        Button sendWebcastLinkButton = findViewById(R.id.webcast_button);
+        sendWebcastLinkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 FriendlyMessage friendlyUpdate = new FriendlyMessage(
@@ -128,7 +172,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         initLoader();
 
-        mRefreshWecastImageView.setOnClickListener(new View.OnClickListener() {
+        // Refresh webcast link
+        ImageView refreshWecastImageView = findViewById(R.id.refresh_webcast_link);
+        refreshWecastImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 initLoader();
@@ -153,8 +199,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void loadTweet() {
-        mResultTextView.setText("");
-        mResultTextView.setVisibility(View.INVISIBLE);
+        mSelectedEditTextView.setText("");
+        mSpeakImageView.setVisibility(View.GONE);
+        mClearImageView.setVisibility(View.INVISIBLE);
+        mTweetsRecyclerView.setVisibility(View.GONE);
         mTweetProgress.setVisibility(View.VISIBLE);
 
         Call<List<Tweet>> call = statusesService.userTimeline(
@@ -171,35 +219,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         call.enqueue(new Callback<List<Tweet>>() {
             @Override
             public void success(final Result<List<Tweet>> result) {
-                mResultedText = result.data.get(0).text;
-                if (mResultedText.contains("http")) {
-                    mResultedText = mResultedText.substring(0, mResultedText.indexOf("http")).concat(".");
-                }
-                mResultTextView.setText(mResultedText.concat("\n\n").concat(result.data.get(0).createdAt));
-                mResultTextView.setVisibility(View.VISIBLE);
+//                mResultedText = result.data.get(0).text;
+//                if (mResultedText.contains("http")) {
+//                    mResultedText = mResultedText.substring(0, mResultedText.indexOf("http")).concat(".");
+//                }
+//                mResultTextView.append("\n\n" + result.data.get(0).createdAt);
+
+                mTweetsRecyclerView.setVisibility(View.VISIBLE);
                 mTweetProgress.setVisibility(View.GONE);
-
-                // Text to speech
-//                tts = new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
-//                    @Override
-//                    public void onInit(int status) {
-//                        if (status == TextToSpeech.SUCCESS) {
-//                            languageResult = tts.setLanguage(Locale.US);
-//                            if (languageResult == TextToSpeech.LANG_MISSING_DATA ||
-//                                    languageResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-//                                Toast.makeText(getApplicationContext(), "This language is not supported.", Toast.LENGTH_SHORT).show();
-//                            } else {
-//                                //speak(resultedText);
-//                            }
-//                        } else {
-//                            Toast.makeText(getApplicationContext(), "Feature not supported on your device.", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                });
-
-                //if (result.data.text.contains("Liftoff")) {
-                //resultTextView.setText("Go go go!");
-                //}
+                mTweetAdapter.setResults(result);
             }
 
             public void failure(TwitterException exception) {
@@ -292,6 +320,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             });
         }catch (Exception ex){
             Log.e("SpaceXActivity", "Unknown issue trying to install a new security provider", ex);
+        }
+    }
+
+    @Override
+    public void onItemClickListener(String tweetText) {
+        mSelectedEditTextView.setText(tweetText);
+        mSpeakImageView.setVisibility(View.VISIBLE);
+        mClearImageView.setVisibility(View.VISIBLE);
+
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
         }
     }
 }
