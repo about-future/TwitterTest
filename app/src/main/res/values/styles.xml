@@ -6,6 +6,14 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="actionBarStyle">@style/ActionBar.WithLogo</item>
+    </style>
+
+    <!-- Actionbar with logo -->
+    <style name="ActionBar.WithLogo" parent="@style/Widget.AppCompat.ActionBar.Solid">
+        <item name="displayOptions">useLogo|showHome</item>
+        <item name="logo">@drawable/ic_spacex_logo</item>
     </style>
 
     <style name="TweetDetails">
