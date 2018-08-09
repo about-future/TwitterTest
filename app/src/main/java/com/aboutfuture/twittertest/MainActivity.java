@@ -19,7 +19,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.security.ProviderInstaller;
@@ -49,16 +48,13 @@ public class MainActivity extends AppCompatActivity implements
 
     private StatusesService statusesService;
 
-    //private TextView mSelectedTextView;
     private EditText mSelectedEditTextView;
     private ImageView mClearImageView;
     private ImageView mSpeakImageView;
     private RecyclerView mTweetsRecyclerView;
     private TweetAdapter mTweetAdapter;
-
     private ImageView mWebcastPreviewImageview;
     private EditText mWebcastLinkEditText;
-
     private ProgressBar mTweetProgress;
     private ProgressBar mWebcastProgress;
 
