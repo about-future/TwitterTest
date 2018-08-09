@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 mSelectedEditTextView.setText("");
                 mSpeakImageView.setVisibility(View.INVISIBLE);
-                mClearImageView.setVisibility(View.INVISIBLE);
+                mClearImageView.setVisibility(View.GONE);
             }
         });
 
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (TextUtils.isEmpty(charSequence)) {
-                    mClearImageView.setVisibility(View.INVISIBLE);
+                    mClearImageView.setVisibility(View.GONE);
                     mSpeakImageView.setVisibility(View.INVISIBLE);
                 } else {
                     mClearImageView.setVisibility(View.VISIBLE);
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void afterTextChanged(Editable editable) {
                 if (TextUtils.isEmpty(editable.toString())) {
-                    mClearImageView.setVisibility(View.INVISIBLE);
+                    mClearImageView.setVisibility(View.GONE);
                     mSpeakImageView.setVisibility(View.INVISIBLE);
                 } else {
                     mClearImageView.setVisibility(View.VISIBLE);
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements
     private void loadTweet() {
         mSelectedEditTextView.setText("");
         mSpeakImageView.setVisibility(View.GONE);
-        mClearImageView.setVisibility(View.INVISIBLE);
+        mClearImageView.setVisibility(View.GONE);
         mTweetsRecyclerView.setVisibility(View.GONE);
         mTweetProgress.setVisibility(View.VISIBLE);
         mEmptyView.setVisibility(View.VISIBLE);

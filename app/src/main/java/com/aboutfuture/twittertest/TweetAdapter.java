@@ -3,17 +3,11 @@ package com.aboutfuture.twittertest;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.NetworkPolicy;
-import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.models.Tweet;
 
@@ -44,17 +38,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.tweetDateView.setText(DateUtils.longDateFormat(mResults.data.get(position).createdAt));
-        String[] textAndLink = cleanMessage(mResults.data.get(position).text);
-        holder.tweetTextView.setText(cleanMessage(mResults.data.get(position).text)[0]);
-
-//        if (textAndLink.length > 1 && !TextUtils.isEmpty(textAndLink[1])) {
-//            holder.tweetImage.setVisibility(View.VISIBLE);
-//            Picasso.get()
-//                    .load(textAndLink[1])
-//                    .into(holder.tweetImage);
-//        } else {
-//            holder.tweetImage.setVisibility(View.GONE);
-//        }
+        holder.tweetTextView.setText(cleanMessage(mResults.data.get(position).text));
     }
 
     @Override
@@ -70,47 +54,32 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
     public class ViewHolder extends RecyclerView.ViewHolder implements RecyclerView.OnClickListener {
         TextView tweetTextView;
         TextView tweetDateView;
-        //ImageView tweetImage;
 
         ViewHolder(View itemView) {
             super(itemView);
             tweetTextView = itemView.findViewById(R.id.tweet_text_tv);
             tweetDateView = itemView.findViewById(R.id.tweet_date_tv);
-            //tweetImage = itemView.findViewById(R.id.tweet_image);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            mOnClickListener.onItemClickListener(mResults.data.get(getAdapterPosition()).text);
+            mOnClickListener.onItemClickListener(cleanMessage(mResults.data.get(getAdapterPosition()).text));
         }
     }
 
-    private String[] cleanMessage(String originalText) {
-        String[] textAndLink = new String[2];
-
+    private String cleanMessage(String originalText) {
         // If original text contains an arrow, delete it
         if (originalText.contains("\u2192")) {
             originalText = originalText.replace("\u2192", "");
         }
 
-        // If originalText contains one or more links, separate the message from the links and save them
-        // in different strings
-        String links;
+        // If originalText contains one or more links, separate the message from the links
         if (originalText.contains("https://")) {
-            links = originalText.substring(originalText.indexOf("https://"), originalText.length());
-            textAndLink[0] = originalText.replace(links, "");
-
-            // If there are more than one link, get only the first one and add it to the returned string array
-//            if (links.contains(" ")) {
-//                textAndLink[1] = links.substring(0, links.indexOf(" "));
-//            } else {
-//                textAndLink[1] = links;
-//            }
-        } else {
-            textAndLink[0] = originalText;
+            String link = originalText.substring(originalText.indexOf("https://"), originalText.length());
+            originalText = originalText.replace(link, "");
         }
 
-        return textAndLink;
+        return originalText;
     }
 }
