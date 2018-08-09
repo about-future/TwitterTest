@@ -7,8 +7,14 @@
     <string name="label_send_notification">Send Notification</string>
     <string name="label_last_tweets">Last Tweets</string>
     <string name="label_selected_tweet">Selected Tweet</string>
-    <string name="label_webcast_link">Webcast Link</string>
+    <string name="label_selected_tweet_hint">Enter message</string>
     <string name="label_send_link">Send Link</string>
-    <string name="label_edit_text_hint">Insert link</string>
+    <string name="label_webcast_link">Webcast Link</string>
+    <string name="label_webcast_hint">Insert link</string>
+    <string name="empty_content_description"> </string>
+    <string name="refresh_tweets">Refresh list of tweets</string>
+    <string name="refresh_link">Refresh webcast link</string>
+    <string name="webcast_preview">Webcast preview</string>
+    <string name="read_tweet">Read_selected_tweet</string>
 
 </resources>

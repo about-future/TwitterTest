@@ -12,7 +12,9 @@ import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements
     private ImageView mWebcastPreviewImageview;
     private EditText mWebcastLinkEditText;
     private ProgressBar mTweetProgress;
+    private View mEmptyView;
     private ProgressBar mWebcastProgress;
 
     private DatabaseReference mMessegesDatabaseReference;
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements
         mWebcastPreviewImageview = findViewById(R.id.webcast_preview);
         mWebcastLinkEditText = findViewById(R.id.webcast_edit_link);
         mTweetProgress = findViewById(R.id.tweet_progress);
+        mEmptyView = findViewById(R.id.empty_view);
         mWebcastProgress = findViewById(R.id.webcast_progress);
         mSpeakImageView = findViewById(R.id.speak_iv);
         mClearImageView = findViewById(R.id.clear_iv);
@@ -80,6 +84,35 @@ public class MainActivity extends AppCompatActivity implements
                 mSelectedEditTextView.setText("");
                 mSpeakImageView.setVisibility(View.INVISIBLE);
                 mClearImageView.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        mSelectedEditTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (TextUtils.isEmpty(charSequence)) {
+                    mClearImageView.setVisibility(View.INVISIBLE);
+                    mSpeakImageView.setVisibility(View.INVISIBLE);
+                } else {
+                    mClearImageView.setVisibility(View.VISIBLE);
+                    mSpeakImageView.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (TextUtils.isEmpty(editable.toString())) {
+                    mClearImageView.setVisibility(View.INVISIBLE);
+                    mSpeakImageView.setVisibility(View.INVISIBLE);
+                } else {
+                    mClearImageView.setVisibility(View.VISIBLE);
+                    mSpeakImageView.setVisibility(View.VISIBLE);
+                }
             }
         });
 
@@ -149,9 +182,16 @@ public class MainActivity extends AppCompatActivity implements
         sendNotificationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FriendlyMessage friendlyMessage = new FriendlyMessage(
-                        "news", mSelectedEditTextView.getText().toString());
-                mMessegesDatabaseReference.push().setValue(friendlyMessage);
+                if (!TextUtils.isEmpty(mSelectedEditTextView.getText().toString())) {
+                    FriendlyMessage friendlyMessage = new FriendlyMessage(
+                            "news", mSelectedEditTextView.getText().toString());
+                    mMessegesDatabaseReference.push().setValue(friendlyMessage);
+                    mSelectedEditTextView.setText("");
+                    mClearImageView.setVisibility(View.GONE);
+                    mSpeakImageView.setVisibility(View.GONE);
+                } else {
+                    Toast.makeText(MainActivity.this, "No message to send!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -160,9 +200,13 @@ public class MainActivity extends AppCompatActivity implements
         sendWebcastLinkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FriendlyMessage friendlyUpdate = new FriendlyMessage(
-                        "updates", mWebcastLinkEditText.getText().toString());
-                mMessegesDatabaseReference.push().setValue(friendlyUpdate);
+                if (!TextUtils.isEmpty(mWebcastLinkEditText.getText().toString())) {
+                    FriendlyMessage friendlyUpdate = new FriendlyMessage(
+                            "updates", mWebcastLinkEditText.getText().toString());
+                    mMessegesDatabaseReference.push().setValue(friendlyUpdate);
+                } else {
+                    Toast.makeText(MainActivity.this, "No link available!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -200,6 +244,7 @@ public class MainActivity extends AppCompatActivity implements
         mClearImageView.setVisibility(View.INVISIBLE);
         mTweetsRecyclerView.setVisibility(View.GONE);
         mTweetProgress.setVisibility(View.VISIBLE);
+        mEmptyView.setVisibility(View.VISIBLE);
 
         Call<List<Tweet>> call = statusesService.userTimeline(
                 null,
@@ -223,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 mTweetsRecyclerView.setVisibility(View.VISIBLE);
                 mTweetProgress.setVisibility(View.GONE);
+                mEmptyView.setVisibility(View.GONE);
                 mTweetAdapter.setResults(result);
             }
 
@@ -302,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void upgradeSecurityProvider() {
-        try{
+        try {
             ProviderInstaller.installIfNeededAsync(this, new ProviderInstaller.ProviderInstallListener() {
                 @Override
                 public void onProviderInstalled() {
@@ -314,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements
                     Log.e("SpaceXActivity", "New security provider install failed.");
                 }
             });
-        }catch (Exception ex){
+        } catch (Exception ex) {
             Log.e("SpaceXActivity", "Unknown issue trying to install a new security provider", ex);
         }
     }
