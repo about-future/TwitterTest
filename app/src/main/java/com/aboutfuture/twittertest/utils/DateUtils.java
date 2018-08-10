@@ -1,6 +1,4 @@
-package com.aboutfuture.twittertest;
-
-import android.content.Context;
+package com.aboutfuture.twittertest.utils;
 
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
@@ -9,18 +7,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class DateUtils {
-
-    // Format and return date and time of tweet
-    public static String formatDate(Date missionDate) {
-        // Date format
-        SimpleDateFormat simpleDateFormat;
-            simpleDateFormat = new SimpleDateFormat("HH:mm, d MMMM yyyy", Locale.US);
-
-        // Set the timezone reference for formatting
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone(TimeZone.getDefault().getID()));
-
-        return simpleDateFormat.format(missionDate);
-    }
 
     public static String longDateFormat(String stringDate) {
         // Original date format

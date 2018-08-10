@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.aboutfuture.twittertest.utils.ImageUtils;
 import com.google.android.gms.security.ProviderInstaller;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;

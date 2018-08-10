@@ -4,9 +4,6 @@ public class FriendlyMessage {
     private String name;
     private String text;
 
-    public FriendlyMessage() {
-    }
-
     public FriendlyMessage(String name, String text) {
         this.name = name;
         this.text = text;

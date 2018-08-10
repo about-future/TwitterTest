@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.aboutfuture.twittertest.utils.DateUtils;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.models.Tweet;
 
